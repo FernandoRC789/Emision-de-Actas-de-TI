@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reportes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-light">
+<nav class="navbar navbar-dark bg-primary">
+    <div class="container-fluid"><a class="navbar-brand" th:href="@{/}">Inicio</a></div>
+</nav>
+
+<div class="container mt-4">
+    <h3 class="text-primary">Reportes de Actas</h3>
+
+    <form class="row g-3 align-items-end">
+        <div class="col-md-3">
+            <label>Desde</label>
+            <input type="date" name="desde" class="form-control"/>
+        </div>
+        <div class="col-md-3">
+            <label>Hasta</label>
+            <input type="date" name="hasta" class="form-control"/>
+        </div>
+        <div class="col-md-3">
+            <label>Tipo de Acta</label>
+            <select name="tipo" class="form-select">
+                <option value="">Todos</option>
+                <option value="ENTREGA">Entrega</option>
+                <option value="PRESTAMO">Préstamo</option>
+                <option value="RECEPCION">Recepción</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <button type="button" class="btn btn-primary" onclick="generarReporte()">Generar Reporte</button>
+        </div>
+    </form>
+
+    <div class="table-responsive mt-4">
+        <table class="table table-bordered">
+            <thead class="table-primary"><tr><th>ID</th><th>Nombre</th><th>Fecha</th><th>URL</th></tr></thead>
+            <tbody>
+            <tr th:each="r : ${reportes}">
+                <td th:text="${r.id}"></td>
+                <td th:text="${r.nombre}"></td>
+                <td th:text="${#dates.format(r.fechaGeneracion,'dd/MM/yyyy HH:mm')}"></td>
+                <td><a th:href="${r.urlReporte}" target="_blank">Abrir</a></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(reportes)}"><td colspan="4" class="text-center">No hay reportes generados.</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function generarReporte(){
+      Swal.fire('Generando', 'El reporte se generará y quedará disponible en la lista.', 'info');
+      // aquí podrías enviar un form o llamar a un endpoint para generar el reporte real
+    }
+</script>
+
+<footer class="text-center mt-5 p-3 bg-primary text-white">
+    © 2025 Área TI — Sistema de Gestión de Actas
+</footer>
+</body>
+</html>

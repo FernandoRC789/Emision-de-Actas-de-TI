@@ -1,0 +1,38 @@
+<form th:action="@{/firmas/guardar}" method="post" enctype="multipart/form-data"
+      xmlns:th="http://www.w3.org/1999/xhtml" xmlns:th="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.w3.org/1999/xhtml" xmlns:th="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.w3.org/1999/xhtml">
+    <label>Tipo de Persona:</label>
+    <input type="text" th:field="*{personaTipo}" required><br><br>
+
+    <label>ID de Persona:</label>
+    <input type="number" th:field="*{personaId}" required><br><br>
+
+    <label>Subir firma:</label>
+    <input type="file" name="firmaFile" accept="image/*" required><br><br>
+
+    <button type="submit">Guardar Firma</button>
+</form>
+
+<hr>
+
+<h3>Firmas Registradas</h3>
+<table>
+    <tr>
+        <th>ID</th>
+        <th>Persona Tipo</th>
+        <th>Imagen</th>
+        <th>Acción</th>
+    </tr>
+    <tr th:each="f : ${firmas}">
+        <td th:text="${f.id}"></td>
+        <td th:text="${f.personaTipo}"></td>
+        <td>
+            <img th:if="${f.imagenBase64 != null}" th:src="'data:image/png;base64,' + ${f.imagenBase64}"
+                 alt="Firma" style="width:100px; height:50px; object-fit:contain;">
+        </td>
+        <td>
+            <a th:href="@{/firmas/eliminar/{id}(id=${f.id})}">Eliminar</a>
+        </td>
+    </tr>
+</table>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión de Actas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" th:href="@{/}">Inicio</a>
+    </div>
+</nav>
+
+<div class="container mt-5">
+    <h3 class="text-primary mb-4 fw-bold">Gestión de Actas</h3>
+
+    <!-- Formulario Acta -->
+    <form id="formActa" th:action="@{/actas/guardar}" th:object="${acta}" method="post" enctype="multipart/form-data" class="card p-4 shadow-sm mb-4">
+
+        <!-- Datos generales -->
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label class="form-label">Tipo de Acta</label>
+                <select class="form-select" th:field="*{tipoActa}" required>
+                    <option th:each="t : ${tipos}" th:value="${t}" th:text="${t.descripcion}"></option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Colaborador</label>
+                <select class="form-select" th:field="*{fichaColaborador}" required>
+                    <option th:each="c : ${colaboradores}" th:value="${c}" th:text="${c.nombres + ' ' + c.apellidos}"></option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Observaciones</label>
+                <input type="text" class="form-control" th:field="*{observaciones}">
+            </div>
+        </div>
+
+        <!-- Activos -->
+        <div class="mb-3">
+            <label>Activos (CTRL para seleccionar varios)</label>
+            <select multiple class="form-select" th:field="*{activos}" size="6">
+                <option th:each="a : ${activos}" th:value="${a}" th:text="${a.tipo + ' — ' + a.numeroSerie}"></option>
+            </select>
+        </div>
+
+        <!-- Firmas -->
+        <h5 class="mt-4">Firmas</h5>
+
+        <!-- Subir nueva firma -->
+        <div class="mb-3">
+            <label class="form-label">Subir nueva firma</label>
+            <input type="file" class="form-control" id="firmaFile" name="firmaFile" accept="image/*">
+        </div>
+
+        <!-- Selección de firma existente -->
+        <div class="mb-3">
+            <label class="form-label">Seleccionar firma existente</label>
+            <select class="form-select" th:field="*{firmaSeleccionadaId}">
+                <option value="">-- Ninguna --</option>
+                <option th:each="f : ${firmas}" th:value="${f.id}" th:text="${f.personaTipo}"></option>
+            </select>
+        </div>
+
+        <!-- Preview -->
+        <div class="mb-3 text-center">
+            <img id="previewFirma" src="" alt="Firma seleccionada" style="width:150px; height:70px; object-fit:contain; display:none;">
+        </div>
+
+        <button type="submit" class="btn btn-success">Guardar / Generar Acta</button>
+    </form>
+
+    <!-- Tabla de Actas -->
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover bg-white">
+            <thead class="table-primary">
+            <tr>
+                <th>ID</th>
+                <th>Tipo</th>
+                <th>Colaborador</th>
+                <th>Activos</th>
+                <th>Firma</th>
+                <th>Observaciones</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="a : ${actas}">
+                <td th:text="${a.id}"></td>
+                <td th:text="${a.tipoActa.descripcion}"></td>
+                <td th:text="${a.fichaColaborador.nombres + ' ' + a.fichaColaborador.apellidos}"></td>
+                <td>
+                    <span th:each="act : ${a.activos}" th:text="${act.tipo + ' — ' + act.numeroSerie} + ', '"></span>
+                </td>
+                <td>
+                    <span th:if="${#lists.isEmpty(a.firmas)}">N/A</span>
+                    <span th:each="f : ${a.firmas}">
+                        <img th:src="@{'/firmas/ver/' + ${f.id}}" alt="Firma" style="width:100px; height:50px; object-fit:contain;">
+                    </span>
+                </td>
+                <td th:text="${a.observaciones}"></td>
+                <td>
+                    <a th:href="@{/actas/editar/{id}(id=${a.id})}" class="btn btn-warning btn-sm">Editar</a>
+                    <a th:href="@{/actas/eliminar/{id}(id=${a.id})}" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar acta?')">Eliminar</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<footer class="text-center mt-5 p-3 bg-primary text-white">
+    © 2025 Área TI — Sistema de Gestión de Actas
+</footer>
+
+<script>
+    // Preview al seleccionar firma existente
+    const selectFirma = document.querySelector('select[th\\:field="*{firmaSeleccionadaId}"]');
+    const previewImg = document.getElementById('previewFirma');
+    const inputFile = document.getElementById('firmaFile');
+
+    selectFirma.addEventListener('change', function() {
+        const selectedId = this.value;
+        if(selectedId){
+            previewImg.src = '/firmas/ver/' + selectedId;
+            previewImg.style.display = 'block';
+        } else {
+            previewImg.style.display = 'none';
+        }
+    });
+
+    // Preview al subir nueva firma
+    inputFile.addEventListener('change', function() {
+        const file = this.files[0];
+        if(file){
+            const reader = new FileReader();
+            reader.onload = function(e){
+                previewImg.src = e.target.result;
+                previewImg.style.display = 'block';
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Mensaje de éxito
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('exito') === 'true') {
+        Swal.fire('¡Éxito!', 'Acta guardada correctamente.', 'success');
+    }
+</script>
+
+</body>
+</html>
